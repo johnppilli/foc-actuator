@@ -8,7 +8,6 @@ programmable haptic knob.
 ---
 
 ## Phase 0 — Learn the fundamentals (in progress)
-Work through `LEARNING.md` Tier 1 before/while building.
 - [x] Motor basics — BLDC, the 90° torque rule, pole pairs (mechanical vs electrical angle)
 - [ ] Electronics — PWM, 3-phase inverter / half-bridge
 - [ ] Control — open vs closed loop, PI controllers
@@ -38,16 +37,8 @@ Work through `LEARNING.md` Tier 1 before/while building.
 
 ## Phase 5 — Polish & ship
 - [ ] Demo video, writeup, photos
-- [ ] Finalize resume bullet
 
 ## Stretch
 - [ ] Position / velocity outer loop
 - [ ] Bolt to a 1-link limb
 - [ ] (Fall follow-on) design my own inverter / power board from scratch
-
----
-
-### Rules that keep it resume-grade
-1. **Write the FOC algorithm myself** — SimpleFOC is reference only, not the engine.
-2. **Don't fab the power board this summer** — use a known-good dev board so failures are *code*
-   bugs, not hardware mysteries. Custom board is the fall project.
