@@ -1,2 +1,4 @@
-foc 
+foc
 *.swp
+firmware/Debug/
+firmware/Release/
