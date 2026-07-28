@@ -27,7 +27,7 @@ hold something gently, not hurt people).
 Loop runs ~20,000×/sec: encoder reads angle → FOC decides how much push → driver delivers
 it → motor pushes → repeat.
 
-## Parts (to finalize before ordering)
+## Parts 
 
 - Driver board: **B-G431B-ESC1** (~$25) — has STM32 + driver + current sensing on one board
 - **Gimbal motor** (~30–40mm BLDC)
