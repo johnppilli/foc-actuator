@@ -7,9 +7,23 @@ typedef struct {
     float y; //second slot
 } vec2; 
 
-// if a variable's type is a plain number type (float, int), use it directly. If a variables type is a struct (like vec2),
-// you must dot into a field to get a single number out of it
+typedef struct {
+    float x;
+    float y;
+    float z;
+} vec3;
 
+typedef struct {
+    float Kp;
+    float Ki;
+    float integral;
+} PIController;
+
+float pi_update(PIController* pi, float error) {
+    pi->integral += error; 
+    float result = (pi->Kp * error) + (pi->Ki * pi->integral);
+    return result;
+}
 
 //Clarke: 3 phase currents into 2 axis (alpha and beta)
 vec2 clarke(float ia, float ib) {
@@ -20,7 +34,6 @@ vec2 clarke(float ia, float ib) {
     return out;                         // hand back the whole bundle 
 }
 
-
 //Park
 vec2 park(vec2 ab, float theta) {
     vec2 out; 
@@ -28,7 +41,6 @@ vec2 park(vec2 ab, float theta) {
     out.y = -ab.x * sinf(theta) + ab.y * cosf(theta); // q
     return out; 
 }
-
 
 //invPark
 vec2 invPark(vec2 dq, float theta) {
@@ -38,6 +50,14 @@ vec2 invPark(vec2 dq, float theta) {
     return out;
     }
 
+//invClarke
+vec3 invClarke(vec2 ab) {
+    vec3 out; 
+    out.x = ab.x; 
+    out.y = (ab.y * sqrtf(3.0f) - ab.x) / 2;
+    out.z = ((-ab.x) - ab.y * sqrtf(3.0f)) / 2;
+    return out;
+}
 
 int main(void) {
     vec2 ab = clarke(1.0f, -0.5f); //this gets alpha and beta 
@@ -49,9 +69,18 @@ int main(void) {
     vec2 ab2 = invPark(dq2, 1.5708f); //rotates it backward, last step, invpark 
     printf("alpha2 = %f, beta2 = %f\n", ab2.x, ab2.y);
 
+    vec3 abc = invClarke(ab);
+    printf("ia = %f, ib = %f, ic = %f\n", abc.x, abc.y, abc.z);
+    
+    PIController myPI = {2.0f, 0.5f, 0.0f};
+
+    float out1 = pi_update(&myPI, 1.0f);
+    printf("out1 = %f, integral = %f\n", out1, myPI.integral);
+
+    float out2 = pi_update(&myPI, 1.0f);
+    printf("out2 = %f, integral = %f\n", out2, myPI.integral);
+    
     return 0;
     }
-
-
 
 
