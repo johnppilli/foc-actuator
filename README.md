@@ -5,8 +5,7 @@ myself**. It's the unit cell of a humanoid robot joint — demoed as a programma
 knob you can feel push back with your fingers.
 
 **Field:** humanoid robotics → actuators (the bottleneck layer).
-**Goal:** reach the torque-control milestone by **mid-August 2026**.
-
+**Goal:** reach the torque-control 
 ---
 
 ## The one-line idea
