@@ -5,8 +5,7 @@ myself**. It's the unit cell of a humanoid robot joint — demoed as a programma
 knob you can feel push back with your fingers.
 
 **Field:** humanoid robotics → actuators (the bottleneck layer).
-**Goal:** reach the torque-control milestone by **mid-August 2026**.
-
+**Goal:** reach the torque-control 
 ---
 
 ## The one-line idea
@@ -27,7 +26,7 @@ hold something gently, not hurt people).
 Loop runs ~20,000×/sec: encoder reads angle → FOC decides how much push → driver delivers
 it → motor pushes → repeat.
 
-## Parts (to finalize before ordering)
+## Parts 
 
 - Driver board: **B-G431B-ESC1** (~$25) — has STM32 + driver + current sensing on one board
 - **Gimbal motor** (~30–40mm BLDC)
