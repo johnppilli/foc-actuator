@@ -40,6 +40,8 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -50,6 +52,7 @@ TIM_HandleTypeDef htim1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -89,6 +92,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 // --- open-loop spin variables ---
   float theta = 0.0f; //electrical angle = the arrow's direction (radians)
@@ -111,6 +115,15 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+  //I2C read pipeline
+  uint8_t rawData[2]; //buffer to hold the 2 raw bytes from encoder
+  HAL_StatusTypeDef i2c_status = HAL_I2C_Mem_Read(&hi2c1, 0x36 << 1, 0x0C, I2C_MEMADD_SIZE_8BIT, rawData, 2, 100);
+  //read 2 bytes from AS5600's raw angle register of I2C
+  uint16_t angle_raw = ((rawData[0] << 8) | rawData[1]); //combine high byte + low byte to one 16 bit number
+  uint16_t angle_actual = angle_raw & 0x0FFF;  //
+
+
+
   // 1) compute the 3 phase sines, 120 degrees apart
   float a = sinf(theta);
   float b = sinf(theta - 2.0944f); // -120 deg (120 = 2pi/3 = 2.0944 rad)
@@ -131,8 +144,9 @@ int main(void)
   if (theta >= 6.2832f) theta -= 6.2832f; //wrap around at 2pi (one full circle)
 
   HAL_Delay(1); //1ms per step
-  } /* USER CODE END 3 */
-}
+  /* USER CODE END 3 */
+  }
+ }
 
 /**
   * @brief System Clock Configuration
@@ -177,6 +191,54 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x40B285C2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
