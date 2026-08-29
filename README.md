@@ -2,8 +2,6 @@
 
 Field-oriented control firmware for a brushless gimbal motor, written from scratch on an STM32G431. The goal is torque control: command a force and have the motor deliver it. That is the building block of a robot joint, and the demo target is a haptic knob that pushes back when you turn it.
 
-[![ci](https://github.com/johnppilli/foc-actuator/actions/workflows/ci.yml/badge.svg)](https://github.com/johnppilli/foc-actuator/actions/workflows/ci.yml)
-
 ## Hardware
 
 - B-G431B-ESC1 driver board (STM32G431, gate driver, and current shunts on one board)
