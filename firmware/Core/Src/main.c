@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <math.h> //for sinf()
+#include "board.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,16 +94,15 @@ int main(void)
   MX_TIM1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  float theta = 0.0f;      // electrical angle, radians
-  float amplitude = 0.3f;  // duty swing, 0..1
-
-  // start all three complementary PWM pairs
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+  /* Everything that used to live in the while(1) below now runs from the
+   * 20 kHz ADC interrupt in foc_loop.c. The original open-loop spin is
+   * still there as MODE_OPENLOOP ("m open" on the serial console). */
+  board_serial_init();
+  board_encoder_init();
+  board_current_init();
+  foc_loop_init();
+  foc_loop_start();
+  board_serial_print("\nfoc-actuator: ready. commands: m q d h o r ?\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -113,30 +112,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-  // AS5600 raw angle register (0x0C), 12-bit result
-  uint8_t rawData[2];
-  HAL_StatusTypeDef i2c_status = HAL_I2C_Mem_Read(&hi2c1, 0x36 << 1, 0x0C, I2C_MEMADD_SIZE_8BIT, rawData, 2, 100);
-  uint16_t angle_raw = ((rawData[0] << 8) | rawData[1]);
-  uint16_t angle_actual = angle_raw & 0x0FFF;
-
-  // open-loop commutation: three sines 120 degrees apart, centered at 50% duty (ARR = 4250)
-  float a = sinf(theta);
-  float b = sinf(theta - 2.0944f);
-  float c = sinf(theta + 2.0944f);
-
-  uint32_t ccrA = (uint32_t)(2125.0f * (1.0f + amplitude * a));
-  uint32_t ccrB = (uint32_t)(2125.0f * (1.0f + amplitude * b));
-  uint32_t ccrC = (uint32_t)(2125.0f * (1.0f + amplitude * c));
-
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ccrA);
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ccrB);
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, ccrC);
-
-  theta += 0.2f;
-  if (theta >= 6.2832f) theta -= 6.2832f;
-
-  HAL_Delay(1);
+    board_serial_poll();     /* commands in, telemetry out */
+    board_encoder_poll();    /* I2C bus-stuck recovery */
+  }
   /* USER CODE END 3 */
   }
  }
