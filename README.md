@@ -9,8 +9,6 @@ Field-oriented control firmware for a brushless gimbal motor, written from scrat
 - AS5600 magnetic encoder over I2C
 - Bench power supply
 
-## What's here
-
 - `foc.c`: Clarke and Park transforms, their inverses, and a PI controller, with a small check in `main()` that runs them on fixed inputs. Build with `gcc foc.c -lm -o foc`.
 - `firmware/`: STM32CubeIDE project for the G431. It currently does open-loop commutation on TIM1 (three complementary PWM pairs) and reads the AS5600 raw angle on I2C1.
 - `ROADMAP.md`: the plan and where it stands.
