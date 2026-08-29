@@ -1,7 +1,7 @@
 /*
  * sim_main.c - closed-loop scenarios for the desktop simulator.
  *
- *   ./build/sim <scenario> > out.csv
+ *   ./build/focsim <scenario> > out.csv
  *
  * Scenarios:
  *   step            iq step, rotor locked         (current-loop tuning)
@@ -22,6 +22,7 @@
 #include "impedance.h"
 #include "motor_sim.h"
 #include "svpwm.h"
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 

@@ -23,7 +23,7 @@ TEST_BIN := $(patsubst tests/%.c,$(BUILD)/%,$(TEST_SRC))
 
 .PHONY: all test sim plots sim-data clean
 
-all: $(TEST_BIN) $(BUILD)/sim
+all: $(TEST_BIN) $(BUILD)/focsim
 
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -33,11 +33,11 @@ $(BUILD)/test_%: tests/test_%.c $(LIB_OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDLIBS)
 
-$(BUILD)/sim: sim/sim_main.c $(LIB_OBJ)
+$(BUILD)/focsim: sim/sim_main.c $(LIB_OBJ)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $^ -o $@ $(LDLIBS)
 
-sim: $(BUILD)/sim
+sim: $(BUILD)/focsim
 
 test: $(TEST_BIN)
 	@fail=0; for t in $(TEST_BIN); do ./$$t || fail=1; done; \
@@ -47,8 +47,8 @@ test: $(TEST_BIN)
 SCENARIOS := step step-free load calib haptic-spring haptic-detents haptic-endstops openloop haptic-curves
 SIM_CSV   := $(patsubst %,$(BUILD)/%.csv,$(SCENARIOS))
 
-$(BUILD)/%.csv: $(BUILD)/sim
-	./$(BUILD)/sim $* > $@
+$(BUILD)/%.csv: $(BUILD)/focsim
+	./$(BUILD)/focsim $* > $@
 
 sim-data: $(SIM_CSV)
 
