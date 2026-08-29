@@ -71,13 +71,13 @@ haptic_profile_t haptic_preset(haptic_preset_t which)
     case HAPTIC_PRESET_DETENTS_12:
         p.n_detents = 12;
         p.k_detent = 0.4f;
-        p.b_damp = 0.001f;
+        p.b_damp = 0.003f;   /* zeta ~0.5 with a 2e-5 kg m^2 knob; stops the post-click ring */
         break;
     case HAPTIC_PRESET_DETENTS_SMOOTH:
         p.n_detents = 24;
         p.k_detent = 0.5f;
         p.detent_shape = DETENT_SINE;
-        p.b_damp = 0.001f;
+        p.b_damp = 0.003f;
         break;
     case HAPTIC_PRESET_ENDSTOPS:
         p.theta_min = -FOC_PI / 2.0f;
