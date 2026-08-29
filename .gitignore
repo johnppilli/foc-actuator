@@ -1,6 +1,10 @@
-foc
-*.swp
+build/
 firmware/Debug/
 firmware/Release/
+firmware/build/
+*.swp
+*.dSYM/
+__pycache__/
+venv/
 LEARNING.md
 SCHEDULE.md
