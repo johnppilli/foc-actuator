@@ -80,16 +80,26 @@ static void test_current_step_free_rotor_accelerates(void)
     loop_t l;
     loop_init(&l);
     foc_dq_t ref = { 0.0f, 0.5f };
-    for (int i = 0; i < 1000; i++) {   /* 50 ms */
+    /* 25 ms: enough to spin up, not enough for back-EMF to hit the bus limit */
+    for (int i = 0; i < 500; i++) {
         loop_tick(&l, ref, 0.0f, 0.0f);
         if (l.t > 3e-3f) {
             ASSERT_NEAR(l.m.i_q, 0.5f, 0.03f);
             ASSERT_NEAR(l.m.i_d, 0.0f, 0.03f);
         }
     }
-    ASSERT_TRUE(l.m.omega_m > 50.0f);
-    /* back-EMF is showing up in v_q */
+    ASSERT_TRUE(l.m.omega_m > 30.0f);
+    /* back-EMF is showing up in v_q on top of the I*R drop */
     ASSERT_TRUE(l.ctrl.v_dq.q > 0.5f * l.m.R + 1.0f);
+
+    /* keep going: the motor speeds up until back-EMF + IR needs more than
+     * the bus can give; the controller then sits on the voltage circle and
+     * iq droops. That is the voltage limit, not a tuning problem. */
+    for (int i = 0; i < 2000; i++) loop_tick(&l, ref, 0.0f, 0.0f);
+    float vmag = sqrtf(l.ctrl.v_dq.d * l.ctrl.v_dq.d + l.ctrl.v_dq.q * l.ctrl.v_dq.q);
+    ASSERT_NEAR(vmag, VBUS * FOC_ONE_OVER_SQRT3 * 0.95f, 0.05f);
+    ASSERT_TRUE(l.m.i_q < 0.5f);
+    ASSERT_TRUE(l.m.omega_m > 80.0f);
 }
 
 static void test_torque_holds_matched_load(void)

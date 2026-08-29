@@ -117,9 +117,9 @@ static void test_extrapolation(void)
 {
     const float dt = 200e-6f, w = 10.0f;
     encoder_t e;
-    encoder_init(&e, 4096, 7, 0.0f, dt);   /* no filtering: exact velocity */
+    encoder_init(&e, 4096, 7, 50.0f, dt);
     float t = 0.0f;
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 5000; i++) {
         t += dt;
         encoder_update(&e, raw_at(w * t, 4096), dt);
     }
