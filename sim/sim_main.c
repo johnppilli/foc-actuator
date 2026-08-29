@@ -149,7 +149,7 @@ static void scenario_haptic(const char *name, haptic_preset_t preset, int mode)
         /* the knob sees the finger through the encoder direction */
         float tau_ext = k_finger * (theta_finger - theta);
         float tau_cmd = haptic_torque(&p, theta, omega);
-        foc_dq_t ref = { 0.0f, tau_cmd / kt };
+        foc_dq_t ref = { 0.0f, (float)enc.direction * tau_cmd / kt };
         foc_abc_t d = foc_ctrl_step(&c, m.i_abc.a, m.i_abc.b, encoder_theta_elec(&enc), ref, VBUS, DT);
         /* external torque acts on the true shaft; encoder direction maps it */
         motor_sim_step_duty(&m, d, VBUS, -(float)m.enc_direction * tau_ext, DT);

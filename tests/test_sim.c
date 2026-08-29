@@ -186,11 +186,12 @@ static void test_calibration_on_simulated_motor(void)
 
 /* Full haptic stack: encoder -> impedance law -> current loop -> motor, with
  * an external "finger" torque. The spring should deflect by tau/k. */
-static void test_haptic_spring_deflection(void)
+static void check_haptic_spring_deflection(int enc_dir)
 {
     motor_sim_t m;
     motor_sim_init_default(&m);
     m.enc_offset_mech = 0.7f;
+    m.enc_direction = (int8_t)enc_dir;
     encoder_t enc;
     encoder_init(&enc, m.enc_cpr, m.pp, 50.0f, 4.0f * DT);
     encoder_set_calibration(&enc, motor_sim_expected_offset_elec(&m), m.enc_direction);
@@ -208,13 +209,21 @@ static void test_haptic_spring_deflection(void)
         if (i % 4 == 0) encoder_update(&enc, motor_sim_encoder_raw(&m), 4.0f * DT);
         float theta = encoder_theta_cont(&enc) - theta_start;
         float tau = haptic_torque(&p, theta, encoder_velocity(&enc));
-        foc_dq_t ref = { 0.0f, tau / kt };
+        /* +iq moves the rotor in +theta_e, which is encoder direction * +theta */
+        foc_dq_t ref = { 0.0f, (float)enc.direction * tau / kt };
         foc_abc_t d = foc_ctrl_step(&ctrl, m.i_abc.a, m.i_abc.b, encoder_theta_elec(&enc), ref, VBUS, DT);
-        motor_sim_step_duty(&m, d, VBUS, -tau_ext, DT);   /* negative load = pushes positive */
+        /* the finger pushes +theta in the encoder frame = enc_dir * +theta_m on the shaft */
+        motor_sim_step_duty(&m, d, VBUS, -(float)enc_dir * tau_ext, DT);
     }
-    float deflection = (float)m.enc_direction * (encoder_theta_cont(&enc) - theta_start);
+    float deflection = encoder_theta_cont(&enc) - theta_start;
     ASSERT_NEAR(deflection, tau_ext / p.k_spring, 0.1f);
     ASSERT_NEAR(m.omega_m, 0.0f, 0.5f);
+}
+
+static void test_haptic_spring_deflection(void)
+{
+    check_haptic_spring_deflection(1);
+    check_haptic_spring_deflection(-1);
 }
 
 int main(void)
