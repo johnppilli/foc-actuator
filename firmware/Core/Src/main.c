@@ -94,13 +94,12 @@ int main(void)
   MX_TIM1_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-// --- open-loop spin variables ---
-  float theta = 0.0f; //electrical angle = the arrow's direction (radians)
-  float amplitude = 0.3f; //how hard we push, 0..1. start gentle
+  float theta = 0.0f;      // electrical angle, radians
+  float amplitude = 0.3f;  // duty swing, 0..1
 
-  //Turn on all 3 PWM pairs: high-side (main) + low-side (complementary N)
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); //high-side
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1); //low-side
+  // start all three complementary PWM pairs
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
@@ -115,35 +114,29 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-  //I2C read pipeline
-  uint8_t rawData[2]; //buffer to hold the 2 raw bytes from encoder
+  // AS5600 raw angle register (0x0C), 12-bit result
+  uint8_t rawData[2];
   HAL_StatusTypeDef i2c_status = HAL_I2C_Mem_Read(&hi2c1, 0x36 << 1, 0x0C, I2C_MEMADD_SIZE_8BIT, rawData, 2, 100);
-  //read 2 bytes from AS5600's raw angle register of I2C
-  uint16_t angle_raw = ((rawData[0] << 8) | rawData[1]); //combine high byte + low byte to one 16 bit number
-  uint16_t angle_actual = angle_raw & 0x0FFF;  //
+  uint16_t angle_raw = ((rawData[0] << 8) | rawData[1]);
+  uint16_t angle_actual = angle_raw & 0x0FFF;
 
-
-
-  // 1) compute the 3 phase sines, 120 degrees apart
+  // open-loop commutation: three sines 120 degrees apart, centered at 50% duty (ARR = 4250)
   float a = sinf(theta);
-  float b = sinf(theta - 2.0944f); // -120 deg (120 = 2pi/3 = 2.0944 rad)
-  float c = sinf(theta + 2.0944f); // +120 deg
+  float b = sinf(theta - 2.0944f);
+  float c = sinf(theta + 2.0944f);
 
-  // 2) convert each sine to a duty (0..4250), cenetered at 50% -> CCR = (ARR/2)*(1 + A*sin)
-  uint32_t ccrA = (uint32_t)(2125.0f * (1.0f + amplitude * a)); // 2125 = 4250/2 = 50%
+  uint32_t ccrA = (uint32_t)(2125.0f * (1.0f + amplitude * a));
   uint32_t ccrB = (uint32_t)(2125.0f * (1.0f + amplitude * b));
   uint32_t ccrC = (uint32_t)(2125.0f * (1.0f + amplitude * c));
 
-  // 3) write them to the PWM compare registers (updates the duty live)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, ccrA);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, ccrB);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, ccrC);
 
-  // 4) rotate the arrow a little for next time
-  theta += 0.2f; // step size = how fast it spins
-  if (theta >= 6.2832f) theta -= 6.2832f; //wrap around at 2pi (one full circle)
+  theta += 0.2f;
+  if (theta >= 6.2832f) theta -= 6.2832f;
 
-  HAL_Delay(1); //1ms per step
+  HAL_Delay(1);
   /* USER CODE END 3 */
   }
  }

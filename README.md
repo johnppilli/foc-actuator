@@ -1,45 +1,20 @@
-# FOC Actuator — Torque-Controlled Brushless Motor (Robot Joint)
+# FOC Actuator
 
-A single brushless motor I control by **force (torque)**, running **FOC firmware I wrote
-myself**. It's the unit cell of a humanoid robot joint — demoed as a programmable haptic
-knob you can feel push back with your fingers.
+Field-oriented control firmware for a brushless gimbal motor, written from scratch on an STM32G431. The goal is torque control: command a force and have the motor deliver it. That is the building block of a robot joint, and the demo target is a haptic knob that pushes back when you turn it.
 
-**Field:** humanoid robotics → actuators (the bottleneck layer).
-**Goal:** reach the torque-control 
----
+## Hardware
 
-## The one-line idea
+- B-G431B-ESC1 driver board (STM32G431, gate driver, and current shunts on one board)
+- Small brushless gimbal motor
+- AS5600 magnetic encoder over I2C
+- Bench power supply
 
-**FOC = the trick that lets code control exactly how *hard* a motor pushes.**
+## What's here
 
-A servo only knows "go to this angle." This knows *force* — push soft, push hard, be
-springy, push back when touched. Force is what robots actually need (to soften a footstep,
-hold something gently, not hurt people).
+- `foc.c`: Clarke and Park transforms, their inverses, and a PI controller, with a small check in `main()` that runs them on fixed inputs. Build with `gcc foc.c -lm -o foc`.
+- `firmware/`: STM32CubeIDE project for the G431. It currently does open-loop commutation on TIM1 (three complementary PWM pairs) and reads the AS5600 raw angle on I2C1.
+- `ROADMAP.md`: the plan and where it stands.
 
-## The 3 parts (+ 1 helper)
+## Status
 
-- **Motor** = the muscle (brushless gimbal motor)
-- **Encoder** = the eyes (reads the shaft angle)
-- **Controller** = the brain (microcontroller running *my* FOC code)
-- **Driver board** = the arm (delivers the actual power to the motor)
-
-Loop runs ~20,000×/sec: encoder reads angle → FOC decides how much push → driver delivers
-it → motor pushes → repeat.
-
-## Parts 
-
-- Driver board: **B-G431B-ESC1** (~$25) — has STM32 + driver + current sensing on one board
-- **Gimbal motor** (~30–40mm BLDC)
-- **Magnetic encoder** (AS5600 simple / AS5047 better)
-- Power supply
-- (optional) knob cap + small screen for the haptic demo
-
-## Build arc (each stage = a working checkpoint)
-
-1. **Spin open-loop** — motor turns smoothly, no feedback yet. First proof of life.
-2. **Add encoder** — read shaft angle; calibrate the offset.
-3. **FOC core** — Clarke/Park transforms + current PI loops. The heart.
-4. **Torque control works** ← THE milestone. Command a force, motor delivers it.
-5. **Impedance control** — soft / stiff / springy / clicky in software. The haptic demo.
-6. **(Stretch)** position/velocity loop, or bolt it to a 1-link limb.
-
+Open-loop spin and encoder reads work on hardware. Next is aligning the encoder to the electrical angle, then closing the current loops for real torque control, then impedance control for the haptic demo.
