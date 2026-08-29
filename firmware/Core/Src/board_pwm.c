@@ -11,6 +11,7 @@
  *     every gate is actively driven off instead of left floating.
  */
 #include "board.h"
+#include "foc.h"
 
 void board_pwm_init(void)
 {
@@ -64,9 +65,9 @@ void board_pwm_start(void)
 void board_pwm_set_duty(float a, float b, float c)
 {
     const float arr = (float)BOARD_PWM_ARR;
-    if (a < 0.0f) a = 0.0f; if (a > 1.0f) a = 1.0f;
-    if (b < 0.0f) b = 0.0f; if (b > 1.0f) b = 1.0f;
-    if (c < 0.0f) c = 0.0f; if (c > 1.0f) c = 1.0f;
+    a = foc_clampf(a, 0.0f, 1.0f);
+    b = foc_clampf(b, 0.0f, 1.0f);
+    c = foc_clampf(c, 0.0f, 1.0f);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (uint32_t)(a * arr));
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, (uint32_t)(b * arr));
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, (uint32_t)(c * arr));

@@ -114,10 +114,9 @@ int main(void)
     /* USER CODE BEGIN 3 */
     board_serial_poll();     /* commands in, telemetry out */
     board_encoder_poll();    /* I2C bus-stuck recovery */
-  }
   /* USER CODE END 3 */
   }
- }
+}
 
 /**
   * @brief System Clock Configuration

@@ -29,6 +29,7 @@
 #include "svpwm.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 telem_ring_t g_telem_ring;
 
@@ -130,21 +131,33 @@ static const char *fault_name(foc_fault_t f)
     return "?";
 }
 
+/* newlib-nano's printf has no %f unless -u _printf_float is linked; format
+ * to three decimals by hand instead. */
+static const char *f3(char *out, size_t n, float x)
+{
+    long m = (long)(x * 1000.0f + (x >= 0.0f ? 0.5f : -0.5f));
+    snprintf(out, n, "%s%ld.%03ld", m < 0 ? "-" : "", labs(m) / 1000, labs(m) % 1000);
+    return out;
+}
+
 void foc_loop_status_text(char *buf, size_t n)
 {
     float off[3];
+    char a[16], b[16], c[16], d[16], e[16];
     board_current_offsets(off);
-    snprintf(buf, n,
-             "\nmode=%s fault=%s tick=%lu calibrated=%d pp=%u dir=%d offset=%.3f calib=%s%s%s\n"
-             "i=[%.2f %.2f %.2f] zero=[%.0f %.0f %.0f] enc_err=%lu theta_m=%.3f w=%.2f\n",
+    int w = snprintf(buf, n,
+             "\nmode=%s fault=%s tick=%lu calibrated=%d pp=%u dir=%d offset=%s calib=%s%s%s\n",
              mode_name(s_mode), fault_name(s_fault), (unsigned long)s_tick, (int)s_calibrated,
-             (unsigned)s_enc.pole_pairs, (int)s_enc.direction, (double)s_enc.offset_elec,
+             (unsigned)s_enc.pole_pairs, (int)s_enc.direction, f3(a, sizeof a, s_enc.offset_elec),
              calib_state_name(s_calib.state),
-             s_calib.fail_reason ? " reason=" : "", s_calib.fail_reason ? s_calib.fail_reason : "",
-             (double)s_i_abc[0], (double)s_i_abc[1], (double)s_i_abc[2],
-             (double)off[0], (double)off[1], (double)off[2],
+             s_calib.fail_reason ? " reason=" : "", s_calib.fail_reason ? s_calib.fail_reason : "");
+    if (w < 0 || (size_t)w >= n) return;
+    snprintf(buf + w, n - (size_t)w,
+             "i=[%s %s %s] zero=[%ld %ld %ld] enc_err=%lu theta_m=%s w=%s\n",
+             f3(a, sizeof a, s_i_abc[0]), f3(b, sizeof b, s_i_abc[1]), f3(c, sizeof c, s_i_abc[2]),
+             (long)off[0], (long)off[1], (long)off[2],
              (unsigned long)board_encoder_errors(),
-             (double)encoder_theta_mech(&s_enc), (double)encoder_velocity(&s_enc));
+             f3(d, sizeof d, encoder_theta_mech(&s_enc)), f3(e, sizeof e, encoder_velocity(&s_enc)));
 }
 
 /* ---- the tick ------------------------------------------------------------ */
